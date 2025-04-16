@@ -2,23 +2,22 @@
   "name": "qizil",
   "version": "0.1.0",
   "private": true,
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
   "scripts": {
     "postinstall": "prisma generate",
-    "dev": "next dev --turbopack",
     "build": "prisma generate && next build",
+    "dev": "next dev --turbopack",
     "start": "next start",
     "lint": "next lint",
     "prisma:seed": "node prisma/seed.js"
   },
   "dependencies": {
     "@prisma/client": "^6.6.0",
-    "@supabase/auth-helpers-nextjs": "^0.10.0",
-    "@supabase/ssr": "^0.6.1",
-    "framer-motion": "^12.7.3",
     "next": "15.3.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "supabase": "^2.20.12"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
