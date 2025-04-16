@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "prisma generate",
     "dev": "next dev --turbopack",
-    "build": "npx prisma generate nnext dev --turbopack",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:seed": "node prisma/seed.js"
@@ -15,7 +16,6 @@
     "@supabase/ssr": "^0.6.1",
     "framer-motion": "^12.7.3",
     "next": "15.3.0",
-    "prisma": "^6.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "supabase": "^2.20.12"
@@ -25,6 +25,7 @@
     "@tailwindcss/postcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
+    "prisma": "^6.6.0",
     "tailwindcss": "^4"
   }
 }

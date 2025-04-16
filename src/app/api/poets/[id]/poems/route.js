@@ -1,7 +1,4 @@
-// app/api/poets/[id]/poems/route.js
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
-
+import prisma from "../../../../../../lib/prisma";
 export async function POST(request, { params }) {
   try {
     const { id } = params;
