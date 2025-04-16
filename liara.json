@@ -1,8 +1,13 @@
 {
   "app": "qizilsoz",
   "port": 3000,
+  "disks": [],
   "build": {
-    "location": "iran"
-  },
-  "disks": []
+    "location": "iran",
+    "commands": [
+      "npm install",
+      "npx prisma generate --schema=./prisma/schema.prisma",
+      "npm run build"
+    ]
+  }
 }
