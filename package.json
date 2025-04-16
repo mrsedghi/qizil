@@ -2,11 +2,7 @@
   "name": "qizil",
   "version": "0.1.0",
   "private": true,
-  "prisma": {
-    "schema": "./prisma/schema.prisma"
-  },
   "scripts": {
-    "postinstall": "prisma generate",
     "build": "prisma generate && next build",
     "dev": "next dev --turbopack",
     "start": "next start",
