@@ -12,7 +12,8 @@ model Poet {
   id        Int      @id @default(autoincrement())
   name      String   @db.VarChar(100)
   bio       String?  @db.Text
-  century   String   @db.VarChar(20) // قرن قمری مانند "هشتم"، "سیزدهم"
+  century   String   @db.VarChar(20)
+  imageUrl  String?  @db.VarChar(512) // لینک عکس شاعر
   poems     Poem[]
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
