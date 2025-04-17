@@ -5,6 +5,25 @@ import Image from "next/image";
 
 const prisma = new PrismaClient();
 
+// ترتیب قرن‌ها از یکم تا معاصر
+const centuryOrder = [
+  "یکم",
+  "دوم",
+  "سوم",
+  "چهارم",
+  "پنجم",
+  "ششم",
+  "هفتم",
+  "هشتم",
+  "نهم",
+  "دهم",
+  "یازدهم",
+  "دوازدهم",
+  "سیزدهم",
+  "چهاردهم",
+  "معاصر",
+];
+
 export default async function Home() {
   const poets = await prisma.poet.findMany({
     include: {
@@ -29,6 +48,11 @@ export default async function Home() {
     acc[century].push(poet);
     return acc;
   }, {});
+
+  // Sort centuries according to our predefined order
+  const sortedCenturies = Object.keys(poetsByCentury).sort((a, b) => {
+    return centuryOrder.indexOf(a) - centuryOrder.indexOf(b);
+  });
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -56,18 +80,18 @@ export default async function Home() {
         </Link>
       </div>
 
-      {/* Render poets grouped by century */}
-      {Object.entries(poetsByCentury).map(([century, poetsInCentury]) => (
+      {/* Render poets grouped by sorted centuries */}
+      {sortedCenturies.map((century) => (
         <div key={century} className="mb-16">
           <div className="flex items-center gap-2 mb-6">
             <h2 className="text-2xl font-bold">قرن {century}</h2>
             <span className="badge badge-primary">
-              {poetsInCentury.length} شاعر
+              {poetsByCentury[century].length} شاعر
             </span>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            {poetsInCentury.map((poet) => (
+            {poetsByCentury[century].map((poet) => (
               <Link href={`/poets/${poet.id}`} key={poet.id} className="group">
                 <div className="flex flex-col items-center text-center gap-3 hover:transform hover:scale-105 transition-transform duration-200">
                   <div className="avatar">
