@@ -32,16 +32,13 @@ export default async function PoetPage({ params }) {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="p-6">
+      <div className="card bg-base-100 shadow-xl">
+        <div className="card-body">
           {/* Back Button */}
-          <Link
-            href={`/`}
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4 transition-colors"
-          >
+          <Link href={`/`} className="btn btn-ghost btn-sm w-fit">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 mr-1"
+              className="h-5 w-5"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -56,29 +53,35 @@ export default async function PoetPage({ params }) {
 
           {/* Header Section */}
           <div className="flex flex-col md:flex-row gap-6 items-start">
-            {poet.imageUrl && (
-              <div className="relative w-32 h-32 rounded-full overflow-hidden">
-                <Image
-                  src={poet.imageUrl}
-                  alt={poet.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  priority
-                />
+            {poet.imageUrl ? (
+              <div className="avatar">
+                <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                  <Image
+                    src={poet.imageUrl}
+                    alt={poet.name}
+                    width={128}
+                    height={128}
+                    className="object-cover"
+                    priority
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="avatar placeholder">
+                <div className="w-32 rounded-full bg-neutral-focus text-neutral-content">
+                  <span className="text-3xl">{poet.name.charAt(0)}</span>
+                </div>
               </div>
             )}
 
             <div className="flex-1 space-y-2">
-              <h1 className="text-2xl font-bold text-gray-900">{poet.name}</h1>
-              <div className="flex flex-wrap gap-2 text-sm text-gray-600">
-                {poet.century && <span>{poet.century}</span>}
-              </div>
+              <h1 className="text-2xl font-bold">{poet.name}</h1>
+              {poet.century && (
+                <div className="badge badge-primary">{poet.century}</div>
+              )}
 
               {poet.bio && (
-                <p className="mt-4 text-gray-700 whitespace-pre-line">
-                  {poet.bio}
-                </p>
+                <p className="mt-4 whitespace-pre-line">{poet.bio}</p>
               )}
             </div>
           </div>
@@ -87,43 +90,38 @@ export default async function PoetPage({ params }) {
           <div className="mt-6">
             <Link
               href={`/poets/${poet.id}/add-poem`}
-              className="inline-block bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition-colors"
+              className="btn btn-success"
             >
               افزودن شعر جدید
             </Link>
           </div>
 
+          {/* Divider */}
+          <div className="divider"></div>
+
           {/* Poems List */}
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">اشعار</h2>
+          <div className="mt-4">
+            <h2 className="text-xl font-semibold mb-4">اشعار</h2>
 
             {poet.poems.length === 0 ? (
-              <p className="text-gray-500">هنوز شعری اضافه نشده است.</p>
+              <div className="alert alert-info">
+                <span>هنوز شعری اضافه نشده است.</span>
+              </div>
             ) : (
-              <div className="space-y-6 divide-y divide-gray-100">
-                {poet.poems.map((poem) => (
-                  <article key={poem.id} className="pt-6 first:pt-0">
-                    <Link
-                      href={`/poets/${poet.id}/poems/${poem.id}`}
-                      className="group"
-                    >
-                      <h3 className="text-lg font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
-                        {poem.title}
-                      </h3>
-                    </Link>
-
-                    {/* Poem Preview */}
-                    <div className="mt-2 prose max-w-none text-gray-700">
-                      {poem.content
-                        .split("\n")
-                        .slice(0, 2)
-                        .map((paragraph, i) => (
-                          <p key={i} className="line-clamp-3">
-                            {paragraph}
-                          </p>
-                        ))}
+              <div className="space-y-6">
+                {poet.poems.map((poem, i) => (
+                  <div
+                    key={poem.id}
+                    className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="card-body p-4">
+                      <Link href={`/poets/${poet.id}/poems/${poem.id}`}>
+                        <h3 className="card-title hover:text-primary transition-colors">
+                          غزل شماره {i + 1} : {poem.title}
+                        </h3>
+                      </Link>
                     </div>
-                  </article>
+                  </div>
                 ))}
               </div>
             )}
