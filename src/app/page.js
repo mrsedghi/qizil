@@ -97,59 +97,9 @@ export default async function Home() {
               <p className="text-base sm:text-lg opacity-80 mb-4 sm:mb-6">
                 کشف و بررسی آثار شاعران بزرگ آذربایجان از قرن یکم تا معاصر
               </p>
-              <div className="stats shadow bg-base-100 w-full overflow-x-auto">
-                <div className="stat min-w-[120px]">
-                  <div className="stat-figure text-primary">
-                    <FaUser className="text-xl sm:text-2xl" />
-                  </div>
-                  <div className="stat-title text-xs sm:text-sm">
-                    تعداد شاعران
-                  </div>
-                  <div className="stat-value text-lg sm:text-xl md:text-2xl">
-                    {poets.length}
-                  </div>
-                </div>
-
-                <div className="stat min-w-[120px]">
-                  <div className="stat-figure text-secondary">
-                    <FaBook className="text-xl sm:text-2xl" />
-                  </div>
-                  <div className="stat-title text-xs sm:text-sm">
-                    قرن‌های پوشش داده شده
-                  </div>
-                  <div className="stat-value text-lg sm:text-xl md:text-2xl">
-                    {sortedCenturies.length}
-                  </div>
-                </div>
-
-                <div className="stat min-w-[120px]">
-                  <div className="stat-figure text-accent">
-                    <FaHistory className="text-xl sm:text-2xl" />
-                  </div>
-                  <div className="stat-title text-xs sm:text-sm">
-                    قدیمی‌ترین شاعر
-                  </div>
-                  <div className="stat-value text-lg sm:text-xl md:text-2xl">
-                    قرن {sortedCenturies[0]}
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </section>
-
-        {/* Centuries navigation */}
-        <div className="tabs tabs-boxed bg-base-200 p-1 mb-8 sticky top-16 z-10">
-          {sortedCenturies.map((century) => (
-            <a
-              key={century}
-              href={`#${century}`}
-              className="tab text-sm sm:text-base"
-            >
-              قرن {century}
-            </a>
-          ))}
-        </div>
 
         {/* Render poets grouped by sorted centuries */}
         {sortedCenturies.map((century) => (
@@ -207,8 +157,8 @@ export default async function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="footer footer-center p-10 bg-base-200 text-base-content rounded-t-2xl">
-        <div className="grid grid-flow-col gap-4">
+      <footer className="flex justify-between gap-4 flex-wrap p-10 bg-base-200 text-base-content rounded-t-2xl">
+        <div className="flex flex-wrap gap-4">
           <Link href="/about" className="link link-hover">
             درباره ما
           </Link>
