@@ -6,6 +6,16 @@ import Image from "next/image";
 
 const prisma = new PrismaClient();
 
+// Add this function to generate static params
+export async function generateStaticParams() {
+  const poets = await prisma.poet.findMany({
+    select: { id: true },
+  });
+  return poets.map((poet) => ({
+    id: poet.id.toString(),
+  }));
+}
+
 const fetchPoet = async (id) => {
   try {
     return await prisma.poet.findUnique({
@@ -24,7 +34,13 @@ const fetchPoet = async (id) => {
 };
 
 export default async function PoetPage({ params }) {
-  const poet = await fetchPoet(params.id);
+  const { id } = await params;
+
+  if (!id || isNaN(parseInt(id))) {
+    return notFound();
+  }
+
+  const poet = await fetchPoet(id);
 
   if (!poet) {
     return notFound();
@@ -32,6 +48,7 @@ export default async function PoetPage({ params }) {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      {/* Rest of your existing JSX remains exactly the same */}
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body p-6 sm:p-8">
           {/* Back Button */}

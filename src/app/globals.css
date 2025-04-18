@@ -30,10 +30,6 @@
   line-height: 2.5;
 }
 
-.poem-line {
-  margin: 1.5rem 0;
-}
-
 @plugin "daisyui/theme" {
   name: "coffee";
   default: false;

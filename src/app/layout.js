@@ -1,5 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { NotistackProvider } from "./providers/NotistackProvider";
+import NextTopLoader from "nextjs-toploader";
+import SplashProvider from "./providers/SplashProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +26,19 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         dir="rtl"
       >
-        {children}
+        <NextTopLoader
+          color="#DB924C"
+          initialPosition={0.08}
+          crawlSpeed={200}
+          height={4}
+          crawl={true}
+          showSpinner={true}
+          easing="ease"
+          speed={200}
+        />
+        <SplashProvider>
+          <NotistackProvider>{children}</NotistackProvider>
+        </SplashProvider>
       </body>
     </html>
   );

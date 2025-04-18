@@ -1,61 +1,55 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { MdOutlineTextIncrease } from "react-icons/md";
+import { MdOutlineTextDecrease } from "react-icons/md";
 
 export const FontSizeControls = () => {
-  const [fontSize, setFontSize] = useState(1.4); // rem units
+  const [fontSize, setFontSize] = useState(1); // Default for non-mobile
 
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--poem-font-size",
-      `${fontSize}rem`
-    );
+    // This will only apply to screens larger than mobile
+    const style = `
+      @media (min-width: 640px) {
+        :root {
+          --poem-font-size: ${fontSize}rem;
+        }
+      }
+    `;
+
+    // Add mobile default
+    const mobileStyle = `
+      :root {
+        --poem-font-size: ${fontSize - 0.2}rem;
+      }
+    `;
+
+    // Create or update style element
+    let styleElement = document.getElementById("font-size-styles");
+    if (!styleElement) {
+      styleElement = document.createElement("style");
+      styleElement.id = "font-size-styles";
+      document.head.appendChild(styleElement);
+    }
+
+    styleElement.textContent = mobileStyle + style;
   }, [fontSize]);
 
   return (
     <div className="join">
       <button
-        onClick={() => setFontSize((prev) => Math.max(1.2, prev - 0.2))}
+        onClick={() => setFontSize((prev) => Math.max(0.8, prev - 0.2))}
         className="btn btn-sm join-item"
         aria-label="Decrease font size"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </button>
-      <button
-        onClick={() => setFontSize(1.4)}
-        className="btn btn-sm join-item"
-        aria-label="Reset font size"
-      >
-        اندازه متن
+        <MdOutlineTextDecrease className="w-5 h-5" />
       </button>
       <button
         onClick={() => setFontSize((prev) => Math.min(2.0, prev + 0.2))}
         className="btn btn-sm join-item"
         aria-label="Increase font size"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          viewBox="0 0 20 20"
-          fill="currentColor"
-        >
-          <path
-            fillRule="evenodd"
-            d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-            clipRule="evenodd"
-          />
-        </svg>
+        <MdOutlineTextIncrease className="w-5 h-5" />
       </button>
     </div>
   );
