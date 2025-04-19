@@ -10,6 +10,7 @@ export default function AddPoet() {
     bio: "",
     century: "",
     imageFile: null,
+    poetUrl: "", // اضافه کردن فیلد لینک اختصاصی
   });
   const [previewImage, setPreviewImage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -36,13 +37,11 @@ export default function AddPoet() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.match("image.*")) {
         alert("لطفا فقط فایل تصویری انتخاب کنید");
         return;
       }
 
-      // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
         alert("حجم فایل باید کمتر از ۲ مگابایت باشد");
         return;
@@ -58,6 +57,10 @@ export default function AddPoet() {
     }
   };
 
+  const generatePoetUrl = (name) => {
+    return name.replace(/\s+/g, "-").toLowerCase();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -71,7 +74,7 @@ export default function AddPoet() {
     try {
       let imageUrl = "";
 
-      // Upload image if exists
+      // آپلود عکس اگر وجود دارد
       if (formData.imageFile) {
         const formDataImg = new FormData();
         formDataImg.append("file", formData.imageFile);
@@ -89,7 +92,10 @@ export default function AddPoet() {
         imageUrl = uploadData.url;
       }
 
-      // Save poet data
+      // تولید لینک اختصاصی اگر وارد نشده
+      const finalPoetUrl = formData.poetUrl || generatePoetUrl(formData.name);
+
+      // ذخیره اطلاعات شاعر
       const response = await fetch("/api/poets", {
         method: "POST",
         headers: {
@@ -100,6 +106,7 @@ export default function AddPoet() {
           bio: formData.bio,
           century: formData.century,
           imageUrl: imageUrl,
+          poetUrl: finalPoetUrl, // اضافه کردن لینک اختصاصی
         }),
       });
 
@@ -107,8 +114,8 @@ export default function AddPoet() {
         throw new Error("خطا در ذخیره اطلاعات شاعر");
       }
 
-      router.push("/");
-      router.refresh(); // Refresh the page to show new data
+      router.push(`poets/${poetUrl}`);
+      router.refresh();
     } catch (error) {
       console.error("Error:", error);
       alert(error.message || "خطایی رخ داده است");
@@ -168,6 +175,27 @@ export default function AddPoet() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              لینک اختصاصی
+            </label>
+            <div className="flex items-center">
+              <span className="mr-2 text-gray-500">qizil.com/poets/</span>
+              <input
+                type="text"
+                value={formData.poetUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, poetUrl: e.target.value })
+                }
+                className="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="لینک-اختصاصی"
+              />
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              اگر خالی بگذارید به صورت خودکار ایجاد می‌شود
+            </p>
           </div>
 
           <div>

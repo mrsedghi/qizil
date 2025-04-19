@@ -9,23 +9,42 @@ datasource db {
 }
 
 model Poet {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(100)
-  bio       String?  @db.Text
-  century   String   @db.VarChar(20)
-  imageUrl  String?  @db.VarChar(512) // لینک عکس شاعر
+  id        Int        @id @default(autoincrement())
+  name      String     @db.VarChar(100)
+  bio       String?    @db.Text
+  century   String     @db.VarChar(20)
+  imageUrl  String?    @db.VarChar(512)
+  poetUrl   String?    @unique @db.VarChar(512)
   poems     Poem[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  poemTypes PoemType[] // رابطه با انواع شعر
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
 
   @@map("poets")
+}
+
+model PoemType {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(50)
+  description String?  @db.Text
+  typeUrl     String?  @db.VarChar(512)
+  poet        Poet     @relation(fields: [poetId], references: [id])
+  poetId      Int
+  poems       Poem[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([name, poetId]) // هر نام نوع شعر برای یک شاعر منحصر به فرد است
+  @@map("poem_types")
 }
 
 model Poem {
   id         Int         @id @default(autoincrement())
   title      String      @db.VarChar(200)
   content    String      @db.Text
-  poemType   PoemType // نوع شعر (غزل، قصیده، ...)
+  order      Int         @default(0)
+  poemType   PoemType    @relation(fields: [poemTypeId], references: [id])
+  poemTypeId Int
   poet       Poet        @relation(fields: [poetId], references: [id])
   poetId     Int
   audioFiles AudioFile[]
@@ -33,25 +52,16 @@ model Poem {
   createdAt  DateTime    @default(now()) @map("created_at")
   updatedAt  DateTime    @updatedAt @map("updated_at")
 
+  @@index([order])
   @@map("poems")
-}
-
-enum PoemType {
-  GHAZAL // غزل
-  GHASIDEH // قصیده
-  ROBBAEI // رباعی
-  DOBEITI // دو بیتی
-  HEJAI // هجایی
-  MASNAVI // مثنوی
-  OTHER // سایر
 }
 
 model AudioFile {
   id        Int      @id @default(autoincrement())
-  url       String   @db.VarChar(255)
+  url       String   @db.VarChar(512)
   reciter   String   @db.VarChar(100)
   format    String   @default("mp3") @db.VarChar(10)
-  duration  Int? // مدت زمان به ثانیه
+  duration  Int?
   poem      Poem     @relation(fields: [poemId], references: [id])
   poemId    Int
   createdAt DateTime @default(now()) @map("created_at")

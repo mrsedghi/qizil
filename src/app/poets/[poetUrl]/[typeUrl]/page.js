@@ -1,30 +1,38 @@
-// app/poets/[id]/page.js
-import { PrismaClient } from "@prisma/client";
+// app/poets/[poetUrl]/[typeUrl]/page.js
+
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import prisma from "../../../../../lib/prisma";
 
-const prisma = new PrismaClient();
-
-// Add this function to generate static params
 export async function generateStaticParams() {
-  const poets = await prisma.poet.findMany({
-    select: { id: true },
+  const poemTypes = await prisma.poemType.findMany({
+    select: {
+      poet: { select: { poetUrl: true } },
+      typeUrl: true,
+    },
+    where: {
+      typeUrl: { not: null },
+    },
   });
-  return poets.map((poet) => ({
-    id: poet.id.toString(),
+
+  return poemTypes.map((type) => ({
+    poetUrl: type.poet.poetUrl,
+    typeUrl: type.typeUrl,
   }));
 }
 
-const fetchPoet = async (id) => {
+const fetchPoet = async (poetUrl) => {
   try {
     return await prisma.poet.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        poems: {
-          include: { audioFiles: true },
-          orderBy: { createdAt: "desc" },
-        },
+      where: { poetUrl },
+      select: {
+        id: true,
+        name: true,
+        bio: true,
+        century: true,
+        imageUrl: true,
+        poetUrl: true,
       },
     });
   } catch (error) {
@@ -33,40 +41,92 @@ const fetchPoet = async (id) => {
   }
 };
 
-export default async function PoetPage({ params }) {
-  const { id } = await params;
+const fetchPoemType = async (poetId, typeUrl) => {
+  try {
+    return await prisma.poemType.findFirst({
+      where: {
+        poetId,
+        typeUrl,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        typeUrl: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching poem type:", error);
+    return null;
+  }
+};
 
-  if (!id || isNaN(parseInt(id))) {
+const fetchPoems = async (poetId, poemTypeId) => {
+  try {
+    return await prisma.poem.findMany({
+      where: {
+        poetId,
+        poemTypeId,
+      },
+      select: {
+        id: true,
+        title: true,
+        order: true,
+      },
+      orderBy: {
+        order: "asc",
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching poems:", error);
+    return [];
+  }
+};
+
+export default async function PoemTypePage({ params }) {
+  const { poetUrl, typeUrl } = params;
+
+  if (!poetUrl || !typeUrl) {
     return notFound();
   }
 
-  const poet = await fetchPoet(id);
-
+  const poet = await fetchPoet(poetUrl);
   if (!poet) {
     return notFound();
   }
 
+  const poemType = await fetchPoemType(poet.id, typeUrl);
+  if (!poemType) {
+    return notFound();
+  }
+
+  const poems = await fetchPoems(poet.id, poemType.id);
+
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      {/* Rest of your existing JSX remains exactly the same */}
       <div className="card bg-base-100 shadow-xl">
         <div className="card-body p-6 sm:p-8">
           {/* Back Button */}
-          <Link href={`/`} className="btn btn-ghost btn-sm w-fit mb-6 -ml-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <div className="flex justify-end">
+            <Link
+              href={`/poets/${poet.poetUrl}`}
+              className="btn btn-ghost btn-sm w-fit mb-6 -ml-2"
             >
-              <path
-                fillRule="evenodd"
-                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
-                clipRule="evenodd"
-              />
-            </svg>
-            بازگشت به صفحه اصلی
-          </Link>
+              بازگشت به صفحه شاعر
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </Link>
+          </div>
 
           {/* Header Section */}
           <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -94,13 +154,16 @@ export default async function PoetPage({ params }) {
               )}
             </div>
 
-            {/* Poet Info Section */}
+            {/* Poet and Type Info Section */}
             <div className="flex-1 w-full">
               <div className="flex flex-col space-y-4">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
                     {poet.name}
                   </h1>
+                  <h2 className="text-xl sm:text-2xl font-semibold text-primary mt-2">
+                    {poemType.name}
+                  </h2>
                   {poet.century && (
                     <div className="badge badge-primary badge-lg mt-2">
                       قرن {poet.century}
@@ -108,41 +171,19 @@ export default async function PoetPage({ params }) {
                   )}
                 </div>
 
-                {/* Bio Section */}
-                {poet.bio && (
+                {/* Description Section */}
+                {poemType.description && (
                   <div className="bg-base-200 rounded-box p-4 sm:p-6 shadow-sm">
                     <h2 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-200">
-                      درباره شاعر
+                      درباره این مجموعه
                     </h2>
                     <p className="whitespace-pre-line leading-relaxed text-justify text-gray-700 dark:text-gray-300">
-                      {poet.bio}
+                      {poemType.description}
                     </p>
                   </div>
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-4 mt-8">
-            <Link
-              href={`/poets/${poet.id}/add-poem`}
-              className="btn btn-success gap-2 flex-1 sm:flex-none"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              افزودن شعر جدید
-            </Link>
           </div>
 
           {/* Divider */}
@@ -162,13 +203,13 @@ export default async function PoetPage({ params }) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
-              مجموعه اشعار
+              اشعار
             </h2>
 
-            {poet.poems.length === 0 ? (
+            {poems.length === 0 ? (
               <div className="alert alert-info shadow-lg">
                 <div>
                   <svg
@@ -184,44 +225,39 @@ export default async function PoetPage({ params }) {
                       d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                     />
                   </svg>
-                  <span>هنوز شعری برای این شاعر ثبت نشده است.</span>
+                  <span>هنوز شعری برای این مجموعه ثبت نشده است.</span>
                 </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 sm:gap-6">
-                {poet.poems.map((poem, i) => (
+                {poems.map((poem) => (
                   <Link
-                    href={`/poets/${poet.id}/poems/${poem.id}`}
+                    href={`/poets/${poet.poetUrl}/${poemType.typeUrl}/${poem.id}`}
                     key={poem.id}
                     className="card bg-base-100 border border-base-200 hover:border-primary transition-all duration-300 hover:shadow-lg"
                   >
                     <div className="card-body p-4 sm:p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="badge badge-primary badge-lg p-4 flex-shrink-0">
-                          {i + 1}
-                        </div>
-                        <div>
-                          <h3 className="card-title text-lg sm:text-xl hover:text-primary transition-colors">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-medium">
+                            {poem.order}
+                          </div>
+                          <h3 className="card-title hover:text-primary transition-colors">
                             {poem.title}
                           </h3>
-                          {poem.audioFiles.length > 0 && (
-                            <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                              >
-                                <path
-                                  fillRule="evenodd"
-                                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-                                  clipRule="evenodd"
-                                />
-                              </svg>
-                              <span>{poem.audioFiles.length} خوانش</span>
-                            </div>
-                          )}
                         </div>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-400"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
                       </div>
                     </div>
                   </Link>

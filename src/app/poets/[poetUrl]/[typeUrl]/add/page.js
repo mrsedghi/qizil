@@ -1,40 +1,84 @@
-// app/poets/[id]/add-poem/page.js
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 
 export default function AddPoem() {
   const params = useParams();
   const router = useRouter();
+  const [poet, setPoet] = useState(null);
+  const [poemType, setPoemType] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: "",
     content: "",
-    poemType: "GHAZAL",
-    audioFiles: [{ url: "", reciter: "" }],
+    order: 0,
+    audioFiles: [{ url: "", reciter: "", format: "mp3", duration: 0 }],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+
+        // Fetch poet and poem type data from API
+        const response = await fetch(
+          `/api/poets/${params.poetUrl}/${params.typeUrl}/add`
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const data = await response.json();
+
+        if (!data.poet || !data.poemType) {
+          router.push("/404");
+          return;
+        }
+
+        setPoet(data.poet);
+        setPoemType(data.poemType);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        router.push("/404");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [params.poetUrl, params.typeUrl, router]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!poet || !poemType) return;
+
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`/api/poets/${params.id}/poems`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await fetch(
+        `/api/poets/${params.poetUrl}/${params.typeUrl}/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
 
-      if (response.ok) {
-        router.push(`/poets/${params.id}`);
-        router.refresh();
-      } else {
-        console.error("Error:", await response.json());
+      if (!response.ok) {
+        throw new Error("Failed to create poem");
+      }
+
+      const newPoem = await response.json();
+
+      if (newPoem) {
+        router.push(`/poets/${params.poetUrl}/${params.typeUrl}`);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error creating poem:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -43,7 +87,10 @@ export default function AddPoem() {
   const addAudioField = () => {
     setFormData({
       ...formData,
-      audioFiles: [...formData.audioFiles, { url: "", reciter: "" }],
+      audioFiles: [
+        ...formData.audioFiles,
+        { url: "", reciter: "", format: "mp3", duration: 0 },
+      ],
     });
   };
 
@@ -52,12 +99,48 @@ export default function AddPoem() {
     setFormData({ ...formData, audioFiles: newAudioFiles });
   };
 
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+            <div className="space-y-2">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!poet || !poemType) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6 text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Data not found
+          </h1>
+          <p className="text-gray-600">
+            The requested poet or poem type could not be found.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">
           اضافه کردن شعر جدید
         </h1>
+        <p className="text-gray-600 mb-6">
+          برای شاعر: {poet.name} - نوع شعر: {poemType.name}
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Poem Title */}
@@ -78,27 +161,23 @@ export default function AddPoem() {
             />
           </div>
 
+          {/* Poem Order */}
           <div>
             <label className="block text-gray-700 font-medium mb-2">
-              نوع شعر
-              <span className="text-red-500">*</span>
+              ترتیب نمایش
             </label>
-            <select
-              value={formData.poemType}
+            <input
+              type="number"
+              value={formData.order}
               onChange={(e) =>
-                setFormData({ ...formData, poemType: e.target.value })
+                setFormData({
+                  ...formData,
+                  order: parseInt(e.target.value) || 0,
+                })
               }
               className="w-full p-3 border border-gray-300 rounded-lg"
-              required
-            >
-              <option value="GHAZAL">غزل</option>
-              <option value="MASNAVI">مثنوی</option>
-              <option value="GHASIDEH">قصیده</option>
-              <option value="ROBBAEI">رباعی</option>
-              <option value="DOBEITI">دوبیتی</option>
-              <option value="HEJAI">هجایی</option>
-              <option value="OTHER">سایر</option>
-            </select>
+              placeholder="عدد ترتیب نمایش"
+            />
           </div>
 
           {/* Poem Content */}
@@ -148,6 +227,7 @@ export default function AddPoem() {
                   <div>
                     <label className="block text-gray-600 mb-1">
                       لینک فایل صوتی
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="url"
@@ -164,6 +244,7 @@ export default function AddPoem() {
                   <div>
                     <label className="block text-gray-600 mb-1">
                       نام خواننده
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -177,6 +258,7 @@ export default function AddPoem() {
                       placeholder="نام خواننده"
                     />
                   </div>
+                  <div className="grid grid-cols-2 gap-4"></div>
                 </div>
               </div>
             ))}
