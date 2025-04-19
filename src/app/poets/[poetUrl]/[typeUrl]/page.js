@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import prisma from "../../../../../lib/prisma";
+import { FaArrowLeft } from "react-icons/fa";
 
 export async function generateStaticParams() {
   const poemTypes = await prisma.poemType.findMany({
@@ -206,7 +207,7 @@ export default async function PoemTypePage({ params }) {
                   d="M4 6h16M4 12h16M4 18h16"
                 />
               </svg>
-              اشعار
+              {poemType.name}
             </h2>
 
             {poems.length === 0 ? (
@@ -229,35 +230,24 @@ export default async function PoemTypePage({ params }) {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 gap-2 sm:gap-4">
                 {poems.map((poem) => (
                   <Link
                     href={`/poets/${poet.poetUrl}/${poemType.typeUrl}/${poem.id}`}
                     key={poem.id}
-                    className="card bg-base-100 border border-base-200 hover:border-primary transition-all duration-300 hover:shadow-lg"
+                    className="card bg-base-100 rounded-[8px] hover:bg-base-300/50 transition-all duration-300 hover:shadow-lg"
                   >
-                    <div className="card-body p-4 sm:p-6">
+                    <div className="card-body p-0">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-4">
                           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-medium">
-                            {poem.order}
+                            غزل {poem.order}
                           </div>
                           <h3 className="card-title hover:text-primary transition-colors">
                             {poem.title}
                           </h3>
                         </div>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5 text-gray-400"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                        <FaArrowLeft className="ml-2" />
                       </div>
                     </div>
                   </Link>
