@@ -6,6 +6,10 @@ import Image from "next/image";
 import prisma from "../../../../../lib/prisma";
 import { FaArrowLeft } from "react-icons/fa";
 
+// Revalidate this page every hour (3600 seconds)
+export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   const poemTypes = await prisma.poemType.findMany({
     select: {
@@ -233,8 +237,8 @@ export default async function PoemTypePage({ params }) {
               <div className="grid grid-cols-1 gap-2 sm:gap-4">
                 {poems.map((poem) => (
                   <Link
-                    href={`/poets/${poet.poetUrl}/${poemType.typeUrl}/${poem.id}`}
-                    key={poem.id}
+                    href={`/poets/${poet.poetUrl}/${poemType.typeUrl}/${poem.order}`}
+                    key={poem.order}
                     className="card bg-base-100 rounded-[8px] hover:bg-base-300/50 transition-all duration-300 hover:shadow-lg"
                   >
                     <div className="card-body p-0">

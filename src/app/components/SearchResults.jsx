@@ -147,11 +147,11 @@ export default function SearchResults({ query, results }) {
                 <div className="space-y-6">
                   {poems.map((poem) => (
                     <div
-                      key={poem.id}
+                      key={poem.order}
                       className="bg-base-200 hover:bg-base-300 rounded-box p-6 transition shadow-sm border border-base-300/50 hover:border-primary/30"
                     >
                       <Link
-                        href={`/poets/${poem.poet.poetUrl}/${poem.poemType.typeUrl}/${poem.id}`}
+                        href={`/poets/${poem.poet.poetUrl}/${poem.poemType.typeUrl}/${poem.order}`}
                       >
                         <div className="flex flex-col gap-4">
                           <div className="flex justify-between items-start">
