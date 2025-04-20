@@ -80,6 +80,24 @@ export async function POST(request, { params }) {
       );
     }
 
+    // Check if order already exists for this poet and poem type
+    if (order) {
+      const existingPoem = await prisma.poem.findFirst({
+        where: {
+          poetId: poet.id,
+          poemTypeId: poemType.id,
+          order: parseInt(order),
+        },
+      });
+
+      if (existingPoem) {
+        return NextResponse.json(
+          { error: "A poem with this order number already exists" },
+          { status: 400 }
+        );
+      }
+    }
+
     // Prepare data for poem creation
     const poemData = {
       title,

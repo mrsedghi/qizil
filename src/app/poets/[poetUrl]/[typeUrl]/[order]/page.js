@@ -1,4 +1,4 @@
-// app/poets/[poetId]/poems/[poemId]/page.js
+// app/poets/[poetUrl]/[poemTypeUrl]/[order]/page.js
 import { PrismaClient } from "@prisma/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -8,28 +8,28 @@ import { ShareButton } from "./components/ShareButton";
 import { FontSizeControls } from "./components/FontSizeControls";
 import { ToggleLineNumbers } from "./components/ToggleLineNumbers";
 import {
-  FiArrowRight,
-  FiBookOpen,
   FiMusic,
-  FiShare2,
-  FiCopy,
-  FiType,
-  FiList,
   FiArrowLeft,
   FiHome,
+  FiChevronRight,
+  FiChevronLeft,
 } from "react-icons/fi";
 import { RiQuillPenLine } from "react-icons/ri";
-import { BsBookmark, BsBookmarkFill } from "react-icons/bs";
 
 const prisma = new PrismaClient();
 
-const fetchPoem = async (poemId) => {
+const fetchPoem = async (poetUrl, poemTypeUrl, order) => {
   try {
-    return await prisma.poem.findUnique({
-      where: { id: parseInt(poemId) },
+    return await prisma.poem.findFirst({
+      where: {
+        poet: { poetUrl },
+        poemType: { typeUrl: poemTypeUrl },
+        order: parseInt(order),
+      },
       include: {
         poet: true,
         audioFiles: true,
+        poemType: true,
       },
     });
   } catch (error) {
@@ -38,17 +38,45 @@ const fetchPoem = async (poemId) => {
   }
 };
 
-const fetchPoemType = async (poemTypeId) => {
-  if (!poemTypeId) return null;
+const fetchAdjacentPoems = async (poetUrl, poemTypeUrl, currentOrder) => {
   try {
-    return await prisma.poemType.findUnique({
-      where: { id: parseInt(poemTypeId) },
-      // Only include relation fields that exist in your schema
-      // Remove typeUrl if it's not a relation field
-    });
+    const [prevPoem, nextPoem] = await Promise.all([
+      prisma.poem.findFirst({
+        where: {
+          poet: { poetUrl },
+          poemType: { typeUrl: poemTypeUrl },
+          order: { lt: parseInt(currentOrder) },
+        },
+        orderBy: { order: "desc" },
+        select: {
+          id: true,
+          order: true,
+          title: true,
+          poet: { select: { poetUrl: true } },
+          poemType: { select: { typeUrl: true } },
+        },
+      }),
+      prisma.poem.findFirst({
+        where: {
+          poet: { poetUrl },
+          poemType: { typeUrl: poemTypeUrl },
+          order: { gt: parseInt(currentOrder) },
+        },
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          order: true,
+          title: true,
+          poet: { select: { poetUrl: true } },
+          poemType: { select: { typeUrl: true } },
+        },
+      }),
+    ]);
+
+    return { prevPoem, nextPoem };
   } catch (error) {
-    console.error("Error fetching poem Type:", error);
-    return null;
+    console.error("Error fetching adjacent poems:", error);
+    return { prevPoem: null, nextPoem: null };
   }
 };
 
@@ -80,7 +108,9 @@ const processPoemContent = (content) => {
           >
             <p
               className={`poem-line leading-relaxed max-sm:text-center ${
-                lineIndex % 2 === 0 ? "lg:text-left" : "lg:text-right"
+                lineIndex % 2 === 0
+                  ? "lg:text-left md:text-left"
+                  : "lg:text-right md:text-right"
               }`}
             >
               {line}
@@ -93,19 +123,46 @@ const processPoemContent = (content) => {
 };
 
 export default async function PoemPage({ params }) {
-  const { poemId, poetId } = params;
-  const poem = await fetchPoem(poemId);
-  const poemType = poem?.poemTypeId
-    ? await fetchPoemType(poem.poemTypeId)
-    : null;
+  const { poetUrl, poemTypeUrl, order } = params;
+  const poem = await fetchPoem(poetUrl, poemTypeUrl, order);
 
-  if (!poem) {
+  if (!poem || !poem.poemType) {
     return notFound();
   }
 
+  const { prevPoem, nextPoem } = await fetchAdjacentPoems(
+    poetUrl,
+    poemTypeUrl,
+    order
+  );
   const hasAudio = poem.audioFiles && poem.audioFiles.length > 0;
 
-  console.log(poem.audioFiles);
+  const NavigationButton = ({ poem, direction }) => {
+    if (!poem) return <div className="flex-1"></div>;
+
+    return (
+      <Link
+        href={`/poets/${poem.poet.poetUrl}/${poem.poemType.typeUrl}/${poem.order}`}
+        className={`btn btn-outline btn-sm flex-shrink-0 flex gap-0 items-center ${
+          direction === "next" ? "ml-auto" : "mr-auto"
+        }`}
+      >
+        {direction === "prev" ? (
+          <>
+            <FiChevronRight className="ml-1" />
+            <span className="w-fit"> قبلی</span>
+            <span className="line-clamp-1 text-right mr-2">{poem.title}</span>
+          </>
+        ) : (
+          <>
+            <span className="line-clamp-1 text-left ml-2">{poem.title}</span>
+            <span className="w-fit"> بعدی</span>
+            <FiChevronLeft className="mr-1" />
+          </>
+        )}
+      </Link>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-base-100 to-base-200">
@@ -119,7 +176,7 @@ export default async function PoemPage({ params }) {
             </div>
             <div className="flex items-center gap-1">
               <Link
-                href={`/poets/${poem.poet.poetUrl}/${poemType.typeUrl}`}
+                href={`/poets/${poem.poet.poetUrl}/${poem.poemType.typeUrl}`}
                 className="btn btn-ghost btn-circle"
               >
                 <FiArrowLeft className="text-lg" />
@@ -149,14 +206,24 @@ export default async function PoemPage({ params }) {
             </li>
             <li>
               <Link
-                href={`/poets/${poem.poet.poetUrl}/${poemType.typeUrl}`}
+                href={`/poets/${poem.poet.poetUrl}/${poem.poemType.typeUrl}`}
                 className="flex items-center gap-1"
               >
-                <span>{poemType.name}</span>
+                <span>{poem.poemType.name}</span>
               </Link>
             </li>
             <li></li>
           </ul>
+        </div>
+
+        {/* Navigation Buttons - Top */}
+        <div className="flex justify-between w-full mb-6 gap-4">
+          <div>
+            {prevPoem && <NavigationButton poem={prevPoem} direction="prev" />}
+          </div>
+          <div>
+            {nextPoem && <NavigationButton poem={nextPoem} direction="next" />}
+          </div>
         </div>
 
         {/* Poet card */}
@@ -179,13 +246,11 @@ export default async function PoemPage({ params }) {
               <div>
                 <h2 className="text-xl font-bold">{poem.poet.name}</h2>
                 <p className="text-sm opacity-80">{poem.title}</p>
-                {poemType && (
-                  <div className="mt-1">
-                    <span className="badge badge-outline badge-sm">
-                      {poemType.name}
-                    </span>
-                  </div>
-                )}
+                <div className="mt-1">
+                  <span className="badge badge-outline badge-sm">
+                    {poem.poemType.name}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -200,7 +265,7 @@ export default async function PoemPage({ params }) {
             <ShareButton
               title={poem.title}
               text={`شعر ${poem.title} از ${poem.poet.name}`}
-              url={`/poets/${poetId}/poems/${poemId}`}
+              url={`/poets/${poem.poet.poetUrl}/${poem.poemType.typeUrl}/${poem.order}`}
             />
           </div>
 
@@ -209,7 +274,7 @@ export default async function PoemPage({ params }) {
           </div>
         </div>
 
-        {/* Audio section - only if audio exists */}
+        {/* Audio section */}
         {hasAudio && (
           <div className="bg-base-100 rounded-xl shadow-sm border border-base-300 overflow-hidden">
             <div className="p-4 border-b border-base-300 flex items-center gap-2 bg-base-200/50">
@@ -242,6 +307,16 @@ export default async function PoemPage({ params }) {
             </div>
           </div>
         )}
+
+        {/* Navigation Buttons - Bottom */}
+        <div className="flex justify-between w-full mt-8 gap-4">
+          <div>
+            {prevPoem && <NavigationButton poem={prevPoem} direction="prev" />}
+          </div>
+          <div>
+            {nextPoem && <NavigationButton poem={nextPoem} direction="next" />}
+          </div>
+        </div>
       </main>
 
       <footer className="py-4 text-center text-sm text-base-content/60">

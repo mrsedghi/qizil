@@ -1,6 +1,9 @@
+//app/poets/[poetUrl]/[typeUrl]/add/page.js
+
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useSnackbar } from "@/app/hooks/useSnackbar";
 
 export default function AddPoem() {
   const params = useParams();
@@ -15,7 +18,7 @@ export default function AddPoem() {
     audioFiles: [{ url: "", reciter: "", format: "mp3", duration: 0 }],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { showSnackbar } = useSnackbar();
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -68,17 +71,23 @@ export default function AddPoem() {
         }
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to create poem");
+        // Show error message from response or default message
+        const errorMessage = data.error || "Failed to create poem";
+        showSnackbar(errorMessage, { variant: "error" });
+
+        return;
       }
 
-      const newPoem = await response.json();
-
-      if (newPoem) {
+      if (data) {
+        showSnackbar("شعر با موفقیت اضافه شد", { variant: "success" });
         router.push(`/poets/${params.poetUrl}/${params.typeUrl}`);
       }
     } catch (error) {
       console.error("Error creating poem:", error);
+      showSnackbar("خطایی در ارتباط با سرور رخ داد", { variant: "error" });
     } finally {
       setIsSubmitting(false);
     }
