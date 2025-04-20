@@ -1,11 +1,10 @@
 // app/page.js
-import { PrismaClient } from "@prisma/client";
 import Link from "next/link";
 import Image from "next/image";
 import prisma from "../../lib/prisma";
-import { FaHome, FaSearch, FaBook, FaUser } from "react-icons/fa";
-import { GiQuillInk } from "react-icons/gi";
+import { FaBook, FaUser } from "react-icons/fa";
 import { RiAncientGateFill } from "react-icons/ri";
+import SearchBox from "./components/SearchBox"; // Import the new component
 
 const centuryOrder = [
   "یکم",
@@ -107,23 +106,8 @@ export default async function Home() {
           {/* Divider */}
           <div className="divider my-6"></div>
 
-          {/* Search Section */}
-          <div className="bg-base-200 rounded-box p-6 mb-6 shadow-sm">
-            <h2 className="text-xl sm:text-2xl font-semibold mb-4 flex items-center gap-3">
-              <FaSearch className="text-primary" />
-              جستجوی اشعار
-            </h2>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="جستجوی شعر یا شاعر..."
-                className="input input-bordered w-full"
-              />
-              <button className="btn btn-primary">
-                <FaSearch />
-              </button>
-            </div>
-          </div>
+          {/* Replace the search section with the client component */}
+          <SearchBox />
 
           {/* Centuries List */}
           <div className="mt-4">
@@ -147,9 +131,9 @@ export default async function Home() {
                     <Link
                       href={`/poets/${poet.poetUrl}`}
                       key={poet.poetUrl}
-                      className="rounded-xl w-fit p-5 bg-base-200 shadow hover:bg-base-300 transition  border-base-300/50 border-1"
+                      className="rounded-xl w-fit p-5 bg-base-200 shadow hover:bg-base-300 transition border-base-300/50 border-1"
                     >
-                      <div className="flex flex-col justify-center items-center gap-4 ">
+                      <div className="flex flex-col justify-center items-center gap-4">
                         <div className="avatar">
                           <div className="w-28 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
                             {poet.imageUrl ? (

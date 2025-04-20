@@ -5,7 +5,7 @@ import { MdOutlineTextIncrease } from "react-icons/md";
 import { MdOutlineTextDecrease } from "react-icons/md";
 
 export const FontSizeControls = () => {
-  const [fontSize, setFontSize] = useState(1); // Default for non-mobile
+  const [fontSize, setFontSize] = useState(1.2); // Default for non-mobile
 
   useEffect(() => {
     // This will only apply to screens larger than mobile
@@ -20,7 +20,7 @@ export const FontSizeControls = () => {
     // Add mobile default
     const mobileStyle = `
       :root {
-        --poem-font-size: ${fontSize - 0.2}rem;
+        --poem-font-size: ${fontSize}rem;
       }
     `;
 

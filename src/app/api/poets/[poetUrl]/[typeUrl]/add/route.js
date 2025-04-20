@@ -47,11 +47,23 @@ export async function POST(request, { params }) {
     const { poetUrl, typeUrl } = params;
     const { title, content, order, audioFiles } = await request.json();
 
+    // Validate required fields
+    if (!title || !content) {
+      return NextResponse.json(
+        { error: "Title and content are required" },
+        { status: 400 }
+      );
+    }
+
     // Get poet and poem type IDs first
     const poet = await prisma.poet.findUnique({
       where: { poetUrl },
       select: { id: true },
     });
+
+    if (!poet) {
+      return NextResponse.json({ error: "Poet not found" }, { status: 404 });
+    }
 
     const poemType = await prisma.poemType.findFirst({
       where: {
@@ -61,23 +73,49 @@ export async function POST(request, { params }) {
       select: { id: true },
     });
 
-    // Create poem with audio files
-    const newPoem = await prisma.poem.create({
-      data: {
-        title,
-        content,
-        order: order || 0,
-        poemTypeId: poemType.id,
-        poetId: poet.id,
-        audioFiles: {
-          create: audioFiles.map((audio) => ({
+    if (!poemType) {
+      return NextResponse.json(
+        { error: "Poem type not found" },
+        { status: 404 }
+      );
+    }
+
+    // Prepare data for poem creation
+    const poemData = {
+      title,
+      content,
+      order: order || 0,
+      poemTypeId: poemType.id,
+      poetId: poet.id,
+    };
+
+    // Handle audio files only if they exist and are valid
+    if (audioFiles && Array.isArray(audioFiles)) {
+      // Filter out invalid audio files (must have a non-empty url)
+      const validAudioFiles = audioFiles.filter(
+        (audio) =>
+          audio &&
+          typeof audio === "object" &&
+          audio.url &&
+          audio.url.trim() !== ""
+      );
+
+      // Only add audioFiles relation if there are valid entries
+      if (validAudioFiles.length > 0) {
+        poemData.audioFiles = {
+          create: validAudioFiles.map((audio) => ({
             url: audio.url,
-            reciter: audio.reciter,
+            reciter: audio.reciter || null,
             format: audio.format || "mp3",
-            duration: audio.duration || 0,
+            duration: audio.duration || null,
           })),
-        },
-      },
+        };
+      }
+    }
+
+    // Create poem with or without audio files
+    const newPoem = await prisma.poem.create({
+      data: poemData,
       include: {
         audioFiles: true,
       },
@@ -87,7 +125,7 @@ export async function POST(request, { params }) {
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: error.message || "Internal server error" },
       { status: 500 }
     );
   }

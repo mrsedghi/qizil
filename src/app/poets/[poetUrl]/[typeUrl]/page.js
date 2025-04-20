@@ -243,7 +243,7 @@ export default async function PoemTypePage({ params }) {
                           <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10 text-primary font-medium">
                             غزل {poem.order}
                           </div>
-                          <h3 className="card-title hover:text-primary transition-colors">
+                          <h3 className="card-title hover:text-primary transition-colors max-sm:text-[0.9rem]">
                             {poem.title}
                           </h3>
                         </div>

@@ -198,7 +198,7 @@ export default async function PoetPage({ params }) {
                   >
                     <div className="card-body p-4 sm:p-6">
                       <div className="flex justify-between items-start">
-                        <div>
+                        <div className="w-3/5">
                           <h3 className="card-title text-lg sm:text-xl hover:text-primary transition-colors">
                             {poemType.name}
                           </h3>
