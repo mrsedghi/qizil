@@ -17,7 +17,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html data-theme="coffee" lang="fa">
+    <html data-theme="coffee" className="noisy-bg min-h-screen" lang="fa">
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />

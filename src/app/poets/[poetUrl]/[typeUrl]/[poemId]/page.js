@@ -119,7 +119,7 @@ export default async function PoemPage({ params }) {
             </div>
             <div className="flex items-center gap-1">
               <Link
-                href={`/poets/${poetId}/${poemType.typeUrl}`}
+                href={`/poets/${poem.poet.poetUrl}/${poemType.typeUrl}`}
                 className="btn btn-ghost btn-circle"
               >
                 <FiArrowLeft className="text-lg" />
