@@ -45,6 +45,10 @@ async function getPoets() {
   }
 }
 
+// Revalidate this page every hour (3600 seconds)
+export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const poets = await getPoets();
 

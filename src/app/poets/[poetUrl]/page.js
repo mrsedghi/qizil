@@ -5,6 +5,10 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import prisma from "../../../../lib/prisma";
 
+// Revalidate this page every hour (3600 seconds)
+export const revalidate = 3600;
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
   const poets = await prisma.poet.findMany({
     select: { poetUrl: true },
