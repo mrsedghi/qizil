@@ -244,7 +244,7 @@ export default async function PoemTypePage({ params }) {
                     <div className="card-body p-0">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-4">
-                          <div className="flex items-center justify-center w-fit px-1 h-10 rounded-lg bg-primary/10 text-primary font-medium">
+                          <div className="flex items-center flex-nowrap  justify-center w-fit px-1 h-10 rounded-lg bg-primary/10 text-primary font-medium">
                             غزل {poem.order}
                           </div>
                           <h3 className="card-title hover:text-primary transition-colors max-sm:text-[0.9rem]">

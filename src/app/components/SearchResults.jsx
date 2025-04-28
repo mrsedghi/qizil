@@ -173,8 +173,8 @@ export default function SearchResults({ query, results }) {
                               </p>
                             </div>
                             <div className="flex flex-col items-end gap-1">
-                              <span className="badge badge-outline badge-sm">
-                                {poem.poemType.name}
+                              <span className="badge badge-outline ">
+                                {poem.poemType.name} {poem.order}
                               </span>
                             </div>
                           </div>
