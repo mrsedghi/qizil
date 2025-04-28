@@ -247,8 +247,8 @@ export default async function PoemPage({ params }) {
                 <h2 className="text-xl font-bold">{poem.poet.name}</h2>
                 <p className="text-sm opacity-80">{poem.title}</p>
                 <div className="mt-1">
-                  <span className="badge badge-outline badge-sm">
-                    {poem.poemType.name}
+                  <span className="badge badge-outline ">
+                    {poem.poemType.name} {poem.order}
                   </span>
                 </div>
               </div>
